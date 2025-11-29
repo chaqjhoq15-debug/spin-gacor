@@ -1,198 +1,129 @@
-<!doctype html>
-<html lang="id">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Spin Overlay (Untuk GitHub Pages / OBS)</title>
-  <style>
-    :root{--w:900px}
-    html,body{height:100%;margin:0;background:transparent}
-    body{display:flex;align-items:center;justify-content:center;font-family:system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial}
-    #stage{width:var(--w);height:var(--w);position:relative}
-    canvas{display:block;width:100%;height:100%}
-    /* pointer */
-    .pointer{position:absolute;left:50%;top:0;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-bottom:30px solid rgba(255,255,255,0.95);filter:drop-shadow(0 2px 4px rgba(0,0,0,0.4))}
-    .center-label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none}
-    .result{background:rgba(0,0,0,0.55);color:#fff;padding:8px 12px;border-radius:8px;font-weight:600}
-    .controls{position:fixed;right:12px;bottom:12px;background:rgba(0,0,0,0.5);color:#fff;padding:8px;border-radius:8px;font-size:13px}
-    button{padding:8px 12px;border-radius:8px;border:0;cursor:pointer}
-    /* make sure overlay is readable in small windows */
-    @media (max-width:700px){:root{--w:520px}}
-  </style>
+<meta charset="UTF-8">
+<title>Spin Overlay</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: transparent;
+    }
+
+    #wheelCanvas {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    /* 🔵 Tombol SPIN */
+    #spinButton {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 12px 25px;
+        background: #00c853;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        font-size: 22px;
+        cursor: pointer;
+        font-weight: bold;
+        z-index: 9999;
+    }
+</style>
 </head>
 <body>
-  <div id="stage">
-    <div class="pointer" aria-hidden="true"></div>
-    <canvas id="wheel"></canvas>
-    <div class="center-label">
-      <div class="result" id="result">Klik SPIN atau tekan tombol spasi</div>
-    </div>
-  </div>
 
-  <div class="controls" id="controls">
-    <button id="spinBtn">SPIN</button>
-    <span style="margin-left:8px;opacity:0.9">Tekan <b>Spasi</b> untuk spin</span>
-  </div>
+<canvas id="wheelCanvas" width="600" height="600"></canvas>
 
-  <script>
-    /*************************************************************************
-     * Konfigurasi: ubah array `segments` sesuai hadiah Anda.
-     * Contoh: 20 slice. Setiap elemen: { label: 'Teks hadiahnya', color: '#hex' }
-     *************************************************************************/
-    const segments = [
-      // sample default 20 slices; sesuaikan label dan warna
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 3', color:'#ff4d4f'},
-      {label:'MITOS 5', color:'#a10000'},
-      {label:'MITOS 5', color:'#a10000'},
-      {label:'MITOS 5', color:'#a10000'},
-      {label:'MITOS 5', color:'#a10000'},
-      {label:'MITOS 5', color:'#a10000'},
-      {label:'TUMBAL 1', color:'#1abc9c'},
-      {label:'TUMBAL 2', color:'#0e6655'},
-      {label:'KEJUTAN', color:'#DAA520'}
-    ];
+<button id="spinButton">SPIN</button>
 
-    // --------------------------------------------------------------------------------
-    // Jangan ubah bagian bawah kalau tidak paham JS — ini yang menghandle render & spin
-    // --------------------------------------------------------------------------------
+<script>
+const canvas = document.getElementById("wheelCanvas");
+const ctx = canvas.getContext("2d");
 
-    const canvas = document.getElementById('wheel');
-    const ctx = canvas.getContext('2d');
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
+const slices = [
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
+    { label: "MITOS", color: "#ff4d4d" },
 
-    function resize() {
-      const rect = canvas.getBoundingClientRect();
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      ctx.setTransform(dpr,0,0,dpr,0,0);
-      draw();
-    }
+    { label: "MITOS 5", color: "#b30000" },
+    { label: "MITOS 5", color: "#b30000" },
+    { label: "MITOS 5", color: "#b30000" },
+    { label: "MITOS 5", color: "#b30000" },
+    { label: "MITOS 5", color: "#b30000" },
+    { label: "MITOS 5", color: "#b30000" },
 
-    window.addEventListener('resize', resize);
+    { label: "TUMBAL", color: "#00cc44" },
+    { label: "TUMBAL 2", color: "#006622" }
+];
 
-    const center = () => ({x: canvas.width / dpr / 2, y: canvas.height / dpr / 2});
-    const radius = () => Math.min(canvas.width / dpr, canvas.height / dpr) / 2 - 6;
+const sliceCount = slices.length;
+const angle = (2 * Math.PI) / sliceCount;
+let rotation = 0;
+let isSpinning = false;
+let speed = 0;
 
-    let angle = 0; // radians
-    let angularVelocity = 0;
-    let spinning = false;
+function drawWheel() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    function draw() {
-      const {x,y} = center();
-      const r = radius();
-      ctx.clearRect(0,0,canvas.width,canvas.height);
+    for (let i = 0; i < sliceCount; i++) {
+        let start = i * angle + rotation;
+        let end = start + angle;
 
-      const segCount = segments.length;
-      const segAngle = (Math.PI * 2) / segCount;
-
-      // draw wheel slices
-      for (let i=0;i<segCount;i++){
-        const start = angle + i*segAngle;
         ctx.beginPath();
-        ctx.moveTo(x,y);
-        ctx.arc(x,y,r,start,start+segAngle);
-        ctx.closePath();
-        ctx.fillStyle = segments[i].color;
+        ctx.moveTo(300, 300);
+        ctx.arc(300, 300, 280, start, end);
+        ctx.fillStyle = slices[i].color;
         ctx.fill();
+        ctx.stroke();
 
-        // label
         ctx.save();
-        ctx.translate(x,y);
-        const mid = start + segAngle/2;
-        ctx.rotate(mid);
-        ctx.textAlign = 'right';
-        ctx.fillStyle = 'rgba(255,255,255,0.95)';
-        ctx.font = Math.max(12, r/12) + 'px sans-serif';
-        ctx.fillText(segments[i].label, r - 10, 4);
+        ctx.translate(300, 300);
+        ctx.rotate(start + angle / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#fff";
+        ctx.font = "20px Arial";
+        ctx.fillText(slices[i].label, 260, 10);
         ctx.restore();
-      }
-
-      // center circle
-      ctx.beginPath();
-      ctx.arc(x,y,Math.max(40,r*0.12),0,Math.PI*2);
-      ctx.fillStyle = 'rgba(0,0,0,0.6)';
-      ctx.fill();
     }
+}
 
-    function animate() {
-      if (!spinning && Math.abs(angularVelocity) < 0.0005) {
-        angularVelocity = 0;
-        cancelAnimationFrame(animFrame);
-        return;
-      }
+function animate() {
+    if (isSpinning) {
+        rotation += speed;
+        speed *= 0.985; 
 
-      angle += angularVelocity;
-      angle %= Math.PI*2;
-
-      // friction
-      angularVelocity *= 0.995;
-
-      draw();
-      animFrame = requestAnimationFrame(animate);
-
-      // when slow enough -> stop and show result
-      if (spinning && Math.abs(angularVelocity) < 0.002) {
-        spinning = false;
-        setTimeout(()=> showResult(), 250);
-      }
+        if (speed < 0.002) {
+            isSpinning = false;
+        }
     }
+    drawWheel();
+    requestAnimationFrame(animate);
+}
 
-    function spin() {
-      if (spinning) return;
-      // random initial velocity (radians/frame)
-      angularVelocity = 0.45 + Math.random()*0.6; // tweak for speed
-      spinning = true;
-      animFrame = requestAnimationFrame(animate);
+document.getElementById("spinButton").onclick = function () {
+    if (!isSpinning) {
+        speed = 0.35 + Math.random() * 0.25;
+        isSpinning = true;
     }
+};
 
-    function showResult(){
-      const segCount = segments.length;
-      const segAngle = (Math.PI * 2) / segCount;
-      // pointer at top (angle = -Math.PI/2). Convert wheel angle to index
-      const normalized = (Math.PI*2 - (angle - Math.PI/2)) % (Math.PI*2);
-      let index = Math.floor(normalized / segAngle) % segCount;
-      const winner = segments[index];
-      document.getElementById('result').textContent = winner.label;
+drawWheel();
+animate();
+</script>
 
-      // dispatch custom event so OBS/TikTok scripts can listen
-      const ev = new CustomEvent('spinResult', {detail:{index, label:winner.label}});
-      window.dispatchEvent(ev);
-    }
-
-    // attach controls
-    document.getElementById('spinBtn').addEventListener('click', spin);
-    window.addEventListener('keydown', (e)=>{ if (e.code==='Space') { e.preventDefault(); spin(); } });
-
-    // initialize sizes & draw
-    resize();
-
-    // allow auto-spin via URL param ?autospin=1
-    try{
-      const params = new URLSearchParams(location.search);
-      if (params.get('autospin') === '1') setTimeout(spin, 600);
-    }catch(e){}
-
-    // expose helper for remote triggers: call window.triggerSpin() from browser source JS or via websocket
-    window.triggerSpin = spin;
-
-    // expose current segments for quick editing from browser console
-    window.spinSegments = segments;
-
-    // for OBS browser source: you can call in OBS "Execute JavaScript": window.triggerSpin();
-
-    // minimal accessibility: announce result via console and event
-    window.addEventListener('spinResult', (e)=> console.log('RESULT:', e.detail));
-  </script>
 </body>
 </html>
