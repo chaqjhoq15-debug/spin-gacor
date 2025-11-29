@@ -2,44 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Spin Overlay</title>
+<title>Spin Auto</title>
 <style>
-    body {
-        margin: 0;
-        overflow: hidden;
-        background: transparent;
-    }
-
+    body { margin:0; overflow:hidden; background:transparent; }
     #wheelCanvas {
         position: absolute;
         left: 50%;
         top: 50%;
         transform: translate(-50%, -50%);
     }
-
-    /* 🔵 Tombol SPIN */
-    #spinButton {
-        position: absolute;
-        bottom: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        padding: 12px 25px;
-        background: #00c853;
-        color: white;
-        border: none;
-        border-radius: 10px;
-        font-size: 22px;
-        cursor: pointer;
-        font-weight: bold;
-        z-index: 9999;
-    }
 </style>
 </head>
 <body>
 
 <canvas id="wheelCanvas" width="600" height="600"></canvas>
-
-<button id="spinButton">SPIN</button>
 
 <script>
 const canvas = document.getElementById("wheelCanvas");
@@ -73,8 +49,8 @@ const slices = [
 const sliceCount = slices.length;
 const angle = (2 * Math.PI) / sliceCount;
 let rotation = 0;
-let isSpinning = false;
-let speed = 0;
+let speed = 0.45;   // mulai langsung muter
+let isSpinning = true;
 
 function drawWheel() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -113,13 +89,6 @@ function animate() {
     drawWheel();
     requestAnimationFrame(animate);
 }
-
-document.getElementById("spinButton").onclick = function () {
-    if (!isSpinning) {
-        speed = 0.35 + Math.random() * 0.25;
-        isSpinning = true;
-    }
-};
 
 drawWheel();
 animate();
